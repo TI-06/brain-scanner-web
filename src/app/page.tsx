@@ -24,8 +24,6 @@ export default function Brain2026() {
   const generateResult = () => {
     if (!name) return;
     setIsScanning(true);
-    
-    // 演出のために1.5秒待機
     setTimeout(() => {
       let hash = 0;
       for (let i = 0; i < name.length; i++) {
@@ -35,7 +33,7 @@ export default function Brain2026() {
       const set = WORD_SETS[mode];
       const selected = [...set]
         .sort((a, b) => (absHash % (set.indexOf(a) + 1)) - (absHash % (set.indexOf(b) + 1)))
-        .slice(0, 5);
+        .slice(0, 8); // 8個に増やして密度アップ
       
       setResult(selected);
       setIsScanning(false);
@@ -43,108 +41,85 @@ export default function Brain2026() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-slate-950">
-      {/* 背景の装飾 */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/30 blur-[120px] rounded-full animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/30 blur-[120px] rounded-full animate-pulse" />
+    <main className="min-h-screen w-full flex items-center justify-center p-4 bg-[#020617] text-white font-sans">
+      {/* 背景の光 */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-900/20 blur-[120px] rounded-full" />
+      </div>
 
       <AnimatePresence mode="wait">
         {!result ? (
-          <motion.div 
-            key="input"
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="z-10 w-full max-w-md bg-white/10 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/20 shadow-2xl text-center"
-          >
-            <h1 className="text-5xl font-black mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent italic tracking-tighter">
-              脳内 2026
-            </h1>
-            <p className="text-white/50 text-sm mb-8 tracking-widest uppercase">Brain Scan System v1.0</p>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-left text-xs font-bold text-purple-300 mb-2 ml-1 uppercase">User Name</label>
-                <input
-                  type="text"
-                  placeholder="名前を入力してください"
-                  value={name}
-                  className="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:ring-2 ring-cyan-500/50 transition-all text-white placeholder:text-white/20 text-lg"
-                  onChange={(e) => setName(e.target.value)}
-                />
+          <motion.div key="input" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md space-y-8 bg-white/5 p-10 rounded-[2.5rem] border border-white/10 backdrop-blur-xl shadow-2xl">
+            <h1 className="text-5xl font-black text-center italic tracking-tighter bg-gradient-to-br from-cyan-300 to-purple-500 bg-clip-text text-transparent">脳内 2026</h1>
+            
+            <div className="space-y-4">
+              <input 
+                className="w-full bg-white/10 border border-white/20 p-5 rounded-2xl text-xl outline-none focus:ring-2 ring-cyan-400 transition-all text-center" 
+                placeholder="名前を入力..." 
+                onChange={(e) => setName(e.target.value)} 
+              />
+              
+              <div className="grid grid-cols-1 gap-3">
+                {(Object.keys(WORD_SETS) as Array<keyof typeof WORD_SETS>).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`p-4 rounded-2xl border-2 font-bold transition-all flex justify-between items-center ${
+                      mode === m ? 'border-cyan-400 bg-cyan-400/20 text-cyan-50' : 'border-white/5 bg-white/5 text-white/40 hover:bg-white/10'
+                    }`}
+                  >
+                    <span>{MODE_LABELS[m]}</span>
+                    {mode === m && <div className="w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_10px_#22d3ee]" />}
+                  </button>
+                ))}
               </div>
 
-              <div>
-                <label className="block text-left text-xs font-bold text-purple-300 mb-2 ml-1 uppercase">Select Mode</label>
-                <div className="grid grid-cols-1 gap-3">
-                  {(Object.keys(WORD_SETS) as Array<keyof typeof WORD_SETS>).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setMode(m)}
-                      className={`py-4 px-6 rounded-2xl text-sm font-bold transition-all flex justify-between items-center border ${
-                        mode === m 
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 border-white/40 shadow-[0_0_20px_rgba(147,51,234,0.5)] scale-[1.02]' 
-                        : 'bg-white/5 border-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      <span>{MODE_LABELS[m]}</span>
-                      {mode === m && <motion.span layoutId="dot" className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_#fff]" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={generateResult}
+              <button 
+                onClick={generateResult} 
                 disabled={!name || isScanning}
-                className="w-full py-5 bg-white text-black rounded-2xl font-black text-lg hover:bg-cyan-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_10px_30px_rgba(255,255,255,0.2)]"
+                className="w-full py-5 bg-white text-black rounded-2xl font-black text-xl hover:bg-cyan-400 active:scale-95 transition-all shadow-xl shadow-white/5"
               >
-                {isScanning ? "スキャン中..." : "スキャン開始"}
+                {isScanning ? "SCANNING..." : "SCAN START"}
               </button>
             </div>
           </motion.div>
         ) : (
-          <motion.div 
-            key="result"
-            initial={{ scale: 0.5, opacity: 0, rotate: -5 }} 
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            className="z-10 text-center w-full max-w-sm"
-          >
-            <div className="bg-white/10 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/30 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
-              {/* 装飾用のリング */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/5 rounded-full" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/10 rounded-full animate-ping" />
-              
-              <p className="text-xs text-cyan-400 font-bold tracking-[0.3em] mb-2 uppercase italic">Result Analyzed</p>
-              <h2 className="text-2xl font-bold text-white mb-8">{name} の脳内</h2>
-              
-              <div className="flex flex-col gap-4 relative">
-                {result.map((word, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.5 + (i * 0.1) }}
-                    className={`text-3xl font-black italic tracking-tighter ${
-                      i === 0 ? 'text-4xl text-white underline decoration-cyan-400 underline-offset-8' : 'text-white/70'
-                    }`}
-                  >
-                    {word}
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="mt-12 pt-6 border-t border-white/10">
-                <p className="text-[10px] text-white/30 tracking-widest uppercase">#脳内2026 #NEO_BRAIN_SCANNER</p>
+          <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-8">
+            <div className="relative w-[350px] h-[350px] md:w-[450px] md:h-[450px] flex items-center justify-center">
+              {/* 脳内メーカー風の散乱配置 */}
+              <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl" />
+              <div className="relative z-10 w-full h-full flex items-center justify-center">
+                <div className="text-sm font-bold text-cyan-400 absolute top-0 uppercase tracking-[0.5em] w-full">Brain Scan Result: {name}</div>
+                
+                {/* 脳内単語のランダム配置（ここがミソ） */}
+                {result.map((word, i) => {
+                  const pos = [
+                    "top-[40%] left-[40%] text-5xl font-black",
+                    "top-[20%] left-[25%] text-2xl opacity-60",
+                    "top-[65%] left-[30%] text-3xl opacity-80",
+                    "top-[30%] right-[20%] text-2xl opacity-50",
+                    "bottom-[20%] right-[30%] text-4xl opacity-90",
+                    "top-[15%] right-[40%] text-xl opacity-40",
+                    "bottom-[40%] left-[15%] text-2xl opacity-70",
+                    "bottom-[15%] left-[45%] text-xl opacity-50"
+                  ];
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      className={`absolute ${pos[i]} italic pointer-events-none whitespace-nowrap`}
+                    >
+                      {word}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
-
-            <button 
-              onClick={() => setResult(null)} 
-              className="mt-8 px-8 py-3 bg-white/10 hover:bg-white/20 rounded-full text-xs font-bold tracking-widest transition-all border border-white/10"
-            >
-              RE-SCAN
-            </button>
+            
+            <button onClick={() => setResult(null)} className="px-10 py-3 rounded-full border border-white/20 text-white/40 hover:text-white transition-all text-sm font-bold tracking-widest">RE-SCAN</button>
           </motion.div>
         )}
       </AnimatePresence>
